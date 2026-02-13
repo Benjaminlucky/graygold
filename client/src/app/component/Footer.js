@@ -161,7 +161,7 @@ export default function Footer() {
                   />
                 </svg>
                 <span className="text-lg text-white/90 group-hover:text-white transition-colors duration-300">
-                  info@edenoasisrealty.com
+                  info@graygoldhomes.com
                 </span>
 
                 {/* Copy tooltip */}
