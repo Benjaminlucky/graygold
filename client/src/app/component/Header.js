@@ -26,7 +26,7 @@ export default function HeaderPremium() {
 
   const navLinks = [
     { name: "Home", href: "/", icon: "🏠" },
-    { name: "Listings", href: "/listings", icon: "🏢" },
+    { name: "Listings", href: "/listing", icon: "🏢" },
     { name: "About", href: "/about", icon: "ℹ️" },
     { name: "Inquiry Form", href: "/inquiry", icon: "📋" },
     { name: "FAQ", href: "/faq", icon: "❓" },
