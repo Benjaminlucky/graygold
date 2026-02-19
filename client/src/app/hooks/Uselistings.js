@@ -2,8 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 
-const API_BASE_URL =
-  process.env.NEXT_PUBLIC_API_URL || "http://localhost/server";
+const API_BASE_URL = "https://graygoldrealty.com/server";
 
 /**
  * Normalizes a raw DB property row into the shape the UI expects.
