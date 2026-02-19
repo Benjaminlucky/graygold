@@ -1,0 +1,5 @@
+[[redirects]]
+  from = "/api/*"
+  to = "https://graygoldrealty.com/server/:splat"
+  status = 200
+  force = true
