@@ -25,7 +25,7 @@ export default function HomeHeroSection() {
             <span className="text-secondary-500">Meets Lasting Wealth</span>
           </h1>
           <p className="mb-8 text-lg text-primary-100 sm:text-xl lg:text-2xl">
-            Nigeria's Premier Gateway to Luxury Living in Lagos, Abuja, Azaba &
+            Nigeria's Premier Gateway to Luxury Living in Lagos, Abuja, Asaba &
             Enugu
           </p>
 

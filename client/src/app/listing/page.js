@@ -3,96 +3,29 @@
 import { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
+import { useListings } from "../hooks/Uselistings";
 
-// ─── Mock Data ────────────────────────────────────────────────────────────────
-const ALL_LISTINGS = [
-  {
-    id: 1,
-    title: "Ultra-Luxury 5-Bedroom Mansion in Ikoyi",
-    location: "Ikoyi, Lagos",
-    price: "Price Available Upon Request",
-    beds: 5,
-    baths: 5.5,
-    type: "Fully Detached Duplex",
-    category: "off-plan",
-    tags: ["Featured", "New Listing", "Hot Offer"],
-    image: "/propertiesImages/property1.jpeg",
-  },
-  {
-    id: 2,
-    title: "Signature 4-Bedroom Penthouse in Victoria Island",
-    location: "Victoria Island, Lagos",
-    price: "₦450,000,000",
-    beds: 4,
-    baths: 4,
-    type: "Penthouse",
-    category: "ready",
-    tags: ["Featured", "Hot Offer"],
-    image: "/propertiesImages/property2.jpeg",
-  },
-  {
-    id: 3,
-    title: "Contemporary 6-Bedroom Villa in Maitama",
-    location: "Maitama, Abuja",
-    price: "₦800,000,000",
-    beds: 6,
-    baths: 6.5,
-    type: "Detached Villa",
-    category: "ready",
-    tags: ["New Listing"],
-    image: "/propertiesImages/property3.jpeg",
-  },
-  {
-    id: 4,
-    title: "Premium 3-Bedroom Smart Home in Lekki Phase 1",
-    location: "Lekki Phase 1, Lagos",
-    price: "₦220,000,000",
-    beds: 3,
-    baths: 3,
-    type: "Semi-Detached",
-    category: "off-plan",
-    tags: ["Featured", "New Listing"],
-    image: "/propertiesImages/property4.jpeg",
-  },
-  {
-    id: 5,
-    title: "Exclusive 5-Bedroom Waterfront Estate",
-    location: "Banana Island, Lagos",
-    price: "Price Available Upon Request",
-    beds: 5,
-    baths: 5,
-    type: "Fully Detached Duplex",
-    category: "off-plan",
-    tags: ["Featured", "Hot Offer"],
-    image: "/propertiesImages/property5.jpeg",
-  },
-  {
-    id: 6,
-    title: "Modern 4-Bedroom Terrace in Asokoro",
-    location: "Asokoro, Abuja",
-    price: "₦180,000,000",
-    beds: 4,
-    baths: 3.5,
-    type: "Terrace Duplex",
-    category: "ready",
-    tags: ["New Listing", "Hot Offer"],
-    image: "/propertiesImages/property6.jpeg",
-  },
-];
-
+// ─── Constants ────────────────────────────────────────────────────────────────
 const TABS = [
   { key: "all", label: "All" },
   { key: "off-plan", label: "Off Plan Project" },
   { key: "ready", label: "Ready to Move in" },
 ];
 
-const STATUS_OPTIONS = ["Any Status", "For Sale", "For Rent", "Sold"];
+const STATUS_OPTIONS = ["Any Status", "available", "sold", "reserved"];
 const PURPOSE_OPTIONS = [
   "Any Purpose",
   "Residential",
   "Commercial",
   "Investment",
 ];
+const SORT_OPTIONS = [
+  { value: "newest", label: "Newest First" },
+  { value: "price_asc", label: "Price: Low to High" },
+  { value: "price_desc", label: "Price: High to Low" },
+];
+
+const ITEMS_PER_PAGE = 6;
 
 // ─── Tag Badge ────────────────────────────────────────────────────────────────
 function TagBadge({ tag }) {
@@ -109,6 +42,24 @@ function TagBadge({ tag }) {
     >
       {tag}
     </span>
+  );
+}
+
+// ─── Skeleton Card ────────────────────────────────────────────────────────────
+function SkeletonCard() {
+  return (
+    <div className="bg-white rounded-2xl overflow-hidden shadow-sm border border-primary-100/60 animate-pulse">
+      <div className="aspect-[4/3] bg-primary-100" />
+      <div className="p-4 space-y-3">
+        <div className="h-5 bg-primary-100 rounded w-3/4" />
+        <div className="h-4 bg-primary-100 rounded w-1/2" />
+        <div className="flex gap-3 pt-1">
+          <div className="h-4 bg-primary-100 rounded w-1/4" />
+          <div className="h-4 bg-primary-100 rounded w-1/4" />
+        </div>
+        <div className="h-8 bg-primary-100 rounded-xl mt-1" />
+      </div>
+    </div>
   );
 }
 
@@ -196,7 +147,7 @@ function PropertyCard({ listing, index }) {
           </svg>
         </button>
 
-        {/* Price + zoom */}
+        {/* Price */}
         <div className="absolute bottom-0 left-0 right-0 p-3 flex items-center justify-between">
           <span className="text-white text-sm font-bold drop-shadow-lg">
             {listing.price}
@@ -325,6 +276,27 @@ function PropertyCard({ listing, index }) {
 function Pagination({ current, total, onChange }) {
   return (
     <div className="flex items-center gap-2 justify-center">
+      <button
+        onClick={() => onChange(Math.max(current - 1, 1))}
+        disabled={current === 1}
+        className="w-9 h-9 rounded-lg bg-white border border-primary-200 flex items-center justify-center text-secondary-500 hover:bg-secondary-500 hover:text-white hover:border-secondary-500 transition-all duration-300 disabled:opacity-40 disabled:cursor-not-allowed"
+        aria-label="Previous page"
+      >
+        <svg
+          className="w-4 h-4"
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke="currentColor"
+          strokeWidth={2.5}
+        >
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            d="M15 19l-7-7 7-7"
+          />
+        </svg>
+      </button>
+
       {Array.from({ length: total }, (_, i) => i + 1).map((page) => (
         <button
           key={page}
@@ -338,9 +310,11 @@ function Pagination({ current, total, onChange }) {
           {page}
         </button>
       ))}
+
       <button
         onClick={() => onChange(Math.min(current + 1, total))}
-        className="w-9 h-9 rounded-lg bg-white border border-primary-200 flex items-center justify-center text-secondary-500 hover:bg-secondary-500 hover:text-white hover:border-secondary-500 transition-all duration-300"
+        disabled={current === total}
+        className="w-9 h-9 rounded-lg bg-white border border-primary-200 flex items-center justify-center text-secondary-500 hover:bg-secondary-500 hover:text-white hover:border-secondary-500 transition-all duration-300 disabled:opacity-40 disabled:cursor-not-allowed"
         aria-label="Next page"
       >
         <svg
@@ -350,13 +324,79 @@ function Pagination({ current, total, onChange }) {
           stroke="currentColor"
           strokeWidth={2.5}
         >
+          <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+        </svg>
+      </button>
+    </div>
+  );
+}
+
+// ─── Error State ──────────────────────────────────────────────────────────────
+function ErrorState({ message, onRetry }) {
+  return (
+    <div className="flex flex-col items-center justify-center py-24 text-center space-y-4">
+      <div className="w-20 h-20 rounded-full bg-red-50 flex items-center justify-center">
+        <svg
+          className="w-10 h-10 text-red-400"
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke="currentColor"
+        >
           <path
             strokeLinecap="round"
             strokeLinejoin="round"
-            d="M13 5l7 7-7 7M5 5l7 7-7 7"
+            strokeWidth={1.5}
+            d="M12 9v2m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"
           />
         </svg>
+      </div>
+      <p className="text-xl font-bold text-primary-700">
+        Unable to load listings
+      </p>
+      <p className="text-primary-400 text-sm max-w-xs">{message}</p>
+      <button
+        onClick={onRetry}
+        className="mt-2 px-6 py-2.5 bg-secondary-500 text-white text-sm font-bold rounded-xl hover:bg-secondary-600 active:scale-95 transition-all duration-200"
+      >
+        Try Again
       </button>
+    </div>
+  );
+}
+
+// ─── Empty State ──────────────────────────────────────────────────────────────
+function EmptyState({ hasFilters, onClear }) {
+  return (
+    <div className="flex flex-col items-center justify-center py-24 text-center space-y-4">
+      <div className="w-20 h-20 rounded-full bg-secondary-50 flex items-center justify-center">
+        <svg
+          className="w-10 h-10 text-secondary-300"
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke="currentColor"
+        >
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth={1.5}
+            d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"
+          />
+        </svg>
+      </div>
+      <p className="text-xl font-bold text-primary-700">No properties found</p>
+      <p className="text-primary-400 text-sm max-w-xs">
+        {hasFilters
+          ? "Try adjusting your search or filters to find what you're looking for."
+          : "No listings are available at the moment. Check back soon."}
+      </p>
+      {hasFilters && (
+        <button
+          onClick={onClear}
+          className="mt-2 px-6 py-2.5 bg-secondary-500 text-white text-sm font-bold rounded-xl hover:bg-secondary-600 active:scale-95 transition-all duration-200"
+        >
+          Clear Filters
+        </button>
+      )}
     </div>
   );
 }
@@ -365,31 +405,33 @@ function Pagination({ current, total, onChange }) {
 export default function ListingsPage() {
   const [activeTab, setActiveTab] = useState("all");
   const [searchQuery, setSearchQuery] = useState("");
-  const [status, setStatus] = useState("Any Status");
+  const [searchInput, setSearchInput] = useState(""); // unsubmitted input
+  const [status, setStatus] = useState("");
   const [purpose, setPurpose] = useState("Any Purpose");
+  const [sortBy, setSortBy] = useState("newest");
   const [currentPage, setCurrentPage] = useState(1);
   const [isSearchFocused, setIsSearchFocused] = useState(false);
 
-  const ITEMS_PER_PAGE = 6;
+  const { listings, totalCount, totalPages, loading, error, refetch } =
+    useListings({
+      category: activeTab,
+      status: status === "Any Status" ? "" : status,
+      search: searchQuery,
+      page: currentPage,
+      perPage: ITEMS_PER_PAGE,
+      sortBy,
+    });
 
-  const filtered = ALL_LISTINGS.filter((l) => {
-    const matchesTab = activeTab === "all" || l.category === activeTab;
-    const matchesSearch =
-      !searchQuery ||
-      l.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      l.location.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      l.type.toLowerCase().includes(searchQuery.toLowerCase());
-    return matchesTab && matchesSearch;
-  });
-
-  const totalPages = Math.max(1, Math.ceil(filtered.length / ITEMS_PER_PAGE));
-  const paginated = filtered.slice(
-    (currentPage - 1) * ITEMS_PER_PAGE,
-    currentPage * ITEMS_PER_PAGE,
-  );
+  const hasFilters = searchQuery || activeTab !== "all" || status;
 
   const handleTabChange = (key) => {
     setActiveTab(key);
+    setCurrentPage(1);
+  };
+
+  const handleSearchSubmit = (e) => {
+    e.preventDefault();
+    setSearchQuery(searchInput);
     setCurrentPage(1);
   };
 
@@ -398,15 +440,21 @@ export default function ListingsPage() {
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
+  const handleClearFilters = () => {
+    setSearchQuery("");
+    setSearchInput("");
+    setActiveTab("all");
+    setStatus("");
+    setSortBy("newest");
+    setCurrentPage(1);
+  };
+
   return (
     <div className="min-h-screen bg-secondary-50/40">
-      {/* ── Search Bar ────────────────────────────────── */}
+      {/* ── Search Bar ──────────────────────────────── */}
       <div className="bg-secondary-500 px-4 py-4 shadow-xl shadow-secondary-900/20">
         <form
-          onSubmit={(e) => {
-            e.preventDefault();
-            setCurrentPage(1);
-          }}
+          onSubmit={handleSearchSubmit}
           className="max-w-5xl mx-auto flex flex-col sm:flex-row gap-3 items-stretch sm:items-center"
         >
           {/* Text search */}
@@ -432,17 +480,21 @@ export default function ListingsPage() {
             </svg>
             <input
               type="text"
-              placeholder="Search by Property Type, or Location, or Status, or Purpose"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="Search by property type, location or title…"
+              value={searchInput}
+              onChange={(e) => setSearchInput(e.target.value)}
               onFocus={() => setIsSearchFocused(true)}
               onBlur={() => setIsSearchFocused(false)}
               className="flex-1 text-sm text-primary-700 placeholder:text-primary-300 outline-none bg-transparent font-medium"
             />
-            {searchQuery && (
+            {searchInput && (
               <button
                 type="button"
-                onClick={() => setSearchQuery("")}
+                onClick={() => {
+                  setSearchInput("");
+                  setSearchQuery("");
+                  setCurrentPage(1);
+                }}
                 className="text-primary-300 hover:text-primary-600 transition-colors"
               >
                 <svg
@@ -462,22 +514,24 @@ export default function ListingsPage() {
             )}
           </div>
 
-          {/* Dropdowns + submit */}
           <div className="flex gap-2">
             {/* Status */}
             <div className="relative">
               <select
                 value={status}
-                onChange={(e) => setStatus(e.target.value)}
+                onChange={(e) => {
+                  setStatus(e.target.value);
+                  setCurrentPage(1);
+                }}
                 className="appearance-none bg-white/15 backdrop-blur-sm text-white text-sm font-semibold px-4 py-3 pr-8 rounded-xl border border-white/20 focus:outline-none focus:ring-2 focus:ring-white/40 cursor-pointer transition-all duration-200 hover:bg-white/25"
               >
                 {STATUS_OPTIONS.map((o) => (
                   <option
                     key={o}
-                    value={o}
+                    value={o === "Any Status" ? "" : o}
                     className="text-primary-900 bg-white"
                   >
-                    {o}
+                    {o.charAt(0).toUpperCase() + o.slice(1)}
                   </option>
                 ))}
               </select>
@@ -552,7 +606,7 @@ export default function ListingsPage() {
         </form>
       </div>
 
-      {/* ── Body ──────────────────────────────────────── */}
+      {/* ── Body ────────────────────────────────────── */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
         {/* Heading row */}
         <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-8">
@@ -561,15 +615,21 @@ export default function ListingsPage() {
               Listings
             </h1>
             <p className="text-primary-400 mt-1 text-sm font-medium">
-              {filtered.length}{" "}
-              {filtered.length === 1 ? "property" : "properties"} found
-              {searchQuery && (
+              {loading ? (
+                <span className="inline-block w-32 h-4 bg-primary-100 rounded animate-pulse" />
+              ) : (
                 <>
-                  {" "}
-                  for{" "}
-                  <span className="text-secondary-500 font-semibold">
-                    "{searchQuery}"
-                  </span>
+                  {totalCount} {totalCount === 1 ? "property" : "properties"}{" "}
+                  found
+                  {searchQuery && (
+                    <>
+                      {" "}
+                      for{" "}
+                      <span className="text-secondary-500 font-semibold">
+                        "{searchQuery}"
+                      </span>
+                    </>
+                  )}
                 </>
               )}
             </p>
@@ -578,11 +638,19 @@ export default function ListingsPage() {
           {/* Sort */}
           <div className="flex items-center gap-2 text-xs text-primary-400 font-semibold">
             <span>Sort by:</span>
-            <select className="text-xs font-semibold text-primary-700 border border-primary-200 rounded-lg px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-secondary-300 bg-white transition-all duration-200">
-              <option>Newest First</option>
-              <option>Price: Low to High</option>
-              <option>Price: High to Low</option>
-              <option>Most Popular</option>
+            <select
+              value={sortBy}
+              onChange={(e) => {
+                setSortBy(e.target.value);
+                setCurrentPage(1);
+              }}
+              className="text-xs font-semibold text-primary-700 border border-primary-200 rounded-lg px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-secondary-300 bg-white transition-all duration-200"
+            >
+              {SORT_OPTIONS.map((o) => (
+                <option key={o.value} value={o.value}>
+                  {o.label}
+                </option>
+              ))}
             </select>
           </div>
         </div>
@@ -604,53 +672,27 @@ export default function ListingsPage() {
           ))}
         </div>
 
-        {/* Grid */}
-        {paginated.length > 0 ? (
+        {/* ── Content ─────────────────────────────── */}
+        {error ? (
+          <ErrorState message={error} onRetry={refetch} />
+        ) : loading ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            {paginated.map((listing, i) => (
-              <PropertyCard key={listing.id} listing={listing} index={i} />
+            {Array.from({ length: ITEMS_PER_PAGE }).map((_, i) => (
+              <SkeletonCard key={i} />
             ))}
           </div>
+        ) : listings.length === 0 ? (
+          <EmptyState hasFilters={!!hasFilters} onClear={handleClearFilters} />
         ) : (
-          /* Empty state */
-          <div className="flex flex-col items-center justify-center py-24 text-center space-y-4">
-            <div className="w-20 h-20 rounded-full bg-secondary-50 flex items-center justify-center">
-              <svg
-                className="w-10 h-10 text-secondary-300"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={1.5}
-                  d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"
-                />
-              </svg>
-            </div>
-            <p className="text-xl font-bold text-primary-700">
-              No properties found
-            </p>
-            <p className="text-primary-400 text-sm max-w-xs">
-              Try adjusting your search or filters to find what you're looking
-              for.
-            </p>
-            <button
-              onClick={() => {
-                setSearchQuery("");
-                setActiveTab("all");
-                setCurrentPage(1);
-              }}
-              className="mt-2 px-6 py-2.5 bg-secondary-500 text-white text-sm font-bold rounded-xl hover:bg-secondary-600 active:scale-95 transition-all duration-200"
-            >
-              Clear Filters
-            </button>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            {listings.map((listing, i) => (
+              <PropertyCard key={listing.id} listing={listing} index={i} />
+            ))}
           </div>
         )}
 
         {/* Pagination */}
-        {paginated.length > 0 && totalPages > 1 && (
+        {!loading && !error && listings.length > 0 && totalPages > 1 && (
           <div className="mt-12">
             <Pagination
               current={currentPage}
