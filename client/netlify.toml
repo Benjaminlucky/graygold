@@ -1,5 +1,5 @@
 [[redirects]]
   from = "/api/*"
-  to = "http://131.153.147.34/server/:splat"
+  to = "https://api.graygoldrealty.com/:splat"
   status = 200
   force = true
