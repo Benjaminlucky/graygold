@@ -4,6 +4,8 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 
+const API_BASE_URL = "https://api.graygoldrealty.com";
+
 const STRENGTH_LEVELS = [
   { label: "Too weak", color: "bg-red-500", width: "w-1/4" },
   { label: "Weak", color: "bg-orange-400", width: "w-2/4" },
@@ -35,7 +37,7 @@ export default function AdminSignup() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [focused, setFocused] = useState("");
-  const [step, setStep] = useState(1); // 2-step form
+  const [step, setStep] = useState(1);
 
   const handleChange = (e) => {
     setForm((prev) => ({ ...prev, [e.target.name]: e.target.value }));
@@ -66,7 +68,7 @@ export default function AdminSignup() {
     setError("");
 
     try {
-      const res = await fetch("http://localhost/server/controllers/auth.php", {
+      const res = await fetch(`${API_BASE_URL}/controllers/auth.php`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ action: "signup", ...form }),
@@ -80,7 +82,7 @@ export default function AdminSignup() {
         setError(data.message || "Registration failed. Please try again.");
       }
     } catch {
-      setError("Unable to connect to server. Make sure XAMPP is running.");
+      setError("Unable to connect to server. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -338,7 +340,6 @@ export default function AdminSignup() {
                     </svg>
                   </button>
                 </div>
-                {/* Strength meter */}
                 {strengthInfo && (
                   <div className="space-y-1.5 mt-2">
                     <div className="h-1 bg-primary-700 rounded-full overflow-hidden">

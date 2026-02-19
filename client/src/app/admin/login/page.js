@@ -4,6 +4,8 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 
+const API_BASE_URL = "https://api.graygoldrealty.com";
+
 export default function AdminLogin() {
   const router = useRouter();
   const [form, setForm] = useState({ email: "", password: "" });
@@ -23,7 +25,7 @@ export default function AdminLogin() {
     setError("");
 
     try {
-      const res = await fetch("http://localhost/server/controllers/auth.php", {
+      const res = await fetch(`${API_BASE_URL}/controllers/auth.php`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ action: "login", ...form }),
@@ -39,7 +41,7 @@ export default function AdminLogin() {
         setError(data.message || "Invalid credentials. Please try again.");
       }
     } catch {
-      setError("Unable to connect to server. Make sure XAMPP is running.");
+      setError("Unable to connect to server. Please try again.");
     } finally {
       setLoading(false);
     }

@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 
-const API_BASE_URL = "/api";
+const API_BASE_URL = "https://api.graygoldrealty.com";
 
 /**
  * Transforms a raw DB property row into the shape the UI components expect.
