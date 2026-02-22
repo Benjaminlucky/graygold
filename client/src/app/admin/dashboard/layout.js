@@ -3,6 +3,7 @@
 import { useState, useEffect, createContext, useContext } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { API_ENDPOINTS, fetchWithAuth } from "@/app/lib/api-config";
 
 // ─── Context ──────────────────────────────────────────────────────────────────
 export const DashboardContext = createContext(null);
@@ -281,28 +282,25 @@ export default function AdminLayout({ children }) {
     }
     setAdmin(JSON.parse(adminData || "{}"));
     fetchAll(token);
-  }, []);
+  }, [router]);
 
   const fetchAll = async (token) => {
     setLoading(true);
     try {
-      const headers = { Authorization: `Bearer ${token}` };
       const [propsRes, inqRes, conRes, subRes] = await Promise.all([
-        fetch("http://localhost/server/controllers/properties.php", {
-          headers,
-        }),
-        fetch("http://localhost/server/controllers/inquiries.php", { headers }),
-        fetch("http://localhost/server/controllers/contact.php", { headers }),
-        fetch("http://localhost/server/controllers/newsletter.php", {
-          headers,
-        }),
+        fetchWithAuth(API_ENDPOINTS.properties),
+        fetchWithAuth(API_ENDPOINTS.inquiries),
+        fetchWithAuth(API_ENDPOINTS.contacts),
+        fetchWithAuth(API_ENDPOINTS.newsletter),
       ]);
+
       const [props, inq, con, sub] = await Promise.all([
         propsRes.json(),
         inqRes.json(),
         conRes.json(),
         subRes.json(),
       ]);
+
       if (props.success) setProperties(props.data || []);
       if (inq.success) setInquiries(inq.data || []);
       if (con.success) setContacts(con.data || []);

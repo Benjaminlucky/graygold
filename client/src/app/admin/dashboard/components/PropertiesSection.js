@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useDashboard } from "../layout";
 import { Badge } from "./ui";
 import { PropertyModal, DeleteModal, ViewPropertyModal } from "./modals";
+import { API_ENDPOINTS } from "@/lib/api-config";
 
 export default function PropertiesSection() {
   const { properties, setProperties, refreshData } = useDashboard();
@@ -27,17 +28,14 @@ export default function PropertiesSection() {
   const handleDelete = async () => {
     const token = localStorage.getItem("gg_token");
     try {
-      const res = await fetch(
-        "http://localhost/server/controllers/properties.php",
-        {
-          method: "DELETE",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-          body: JSON.stringify({ id: deleteTarget.id }),
+      const res = await fetch(API_ENDPOINTS.properties, {
+        method: "DELETE",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
         },
-      );
+        body: JSON.stringify({ id: deleteTarget.id }),
+      });
       const data = await res.json();
       if (data.success) {
         setProperties((prev) => prev.filter((p) => p.id !== deleteTarget.id));
