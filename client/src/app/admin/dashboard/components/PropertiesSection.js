@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useDashboard } from "../layout";
 import { Badge } from "./ui";
 import { PropertyModal, DeleteModal, ViewPropertyModal } from "./modals";
-import { API_ENDPOINTS } from "@/lib/api-config";
+import { API_ENDPOINTS, fetchWithAuth } from "@/app/lib/api-config";
 
 export default function PropertiesSection() {
   const { properties, setProperties, refreshData } = useDashboard();
