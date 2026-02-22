@@ -287,6 +287,7 @@ export default function AdminLayout({ children }) {
   const fetchAll = async (token) => {
     setLoading(true);
     try {
+      // Fetch all data in parallel
       const [propsRes, inqRes, conRes, subRes] = await Promise.all([
         fetchWithAuth(API_ENDPOINTS.properties),
         fetchWithAuth(API_ENDPOINTS.inquiries),
@@ -294,19 +295,56 @@ export default function AdminLayout({ children }) {
         fetchWithAuth(API_ENDPOINTS.newsletter),
       ]);
 
-      const [props, inq, con, sub] = await Promise.all([
-        propsRes.json(),
-        inqRes.json(),
-        conRes.json(),
-        subRes.json(),
-      ]);
+      // Check if responses are ok
+      if (!propsRes.ok) {
+        console.error(
+          "Properties fetch failed:",
+          propsRes.status,
+          propsRes.statusText,
+        );
+        const errorText = await propsRes.text();
+        console.error("Response:", errorText);
+      } else {
+        const props = await propsRes.json();
+        if (props.success) {
+          setProperties(props.data || []);
+          console.log("✓ Properties loaded:", props.data?.length || 0);
+        } else {
+          console.error("Properties API error:", props.message);
+        }
+      }
 
-      if (props.success) setProperties(props.data || []);
-      if (inq.success) setInquiries(inq.data || []);
-      if (con.success) setContacts(con.data || []);
-      if (sub.success) setSubscribers(sub.data || []);
+      if (!inqRes.ok) {
+        console.error("Inquiries fetch failed:", inqRes.status);
+      } else {
+        const inq = await inqRes.json();
+        if (inq.success) {
+          setInquiries(inq.data || []);
+          console.log("✓ Inquiries loaded:", inq.data?.length || 0);
+        }
+      }
+
+      if (!conRes.ok) {
+        console.error("Contacts fetch failed:", conRes.status);
+      } else {
+        const con = await conRes.json();
+        if (con.success) {
+          setContacts(con.data || []);
+          console.log("✓ Contacts loaded:", con.data?.length || 0);
+        }
+      }
+
+      if (!subRes.ok) {
+        console.error("Newsletter fetch failed:", subRes.status);
+      } else {
+        const sub = await subRes.json();
+        if (sub.success) {
+          setSubscribers(sub.data || []);
+          console.log("✓ Subscribers loaded:", sub.data?.length || 0);
+        }
+      }
     } catch (e) {
-      console.error(e);
+      console.error("Fetch error:", e);
     } finally {
       setLoading(false);
     }

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
+import { API_ENDPOINTS } from "@/app/lib/api-config";
 
 const inputClass =
   "w-full bg-primary-800/80 border border-primary-600/50 rounded-xl px-4 py-3 text-white text-sm placeholder:text-primary-600 outline-none focus:border-secondary-500/70 focus:ring-2 focus:ring-secondary-500/10 transition-all duration-200 font-medium";
@@ -275,14 +276,11 @@ export function PropertyModal({ property, onClose, onSave }) {
         const formData = new FormData();
         images.forEach((img) => formData.append("images[]", img.file));
 
-        const uploadRes = await fetch(
-          "http://localhost/server/controllers/upload.php",
-          {
-            method: "POST",
-            headers: { Authorization: `Bearer ${token}` },
-            body: formData,
-          },
-        );
+        const uploadRes = await fetch(API_ENDPOINTS.upload, {
+          method: "POST",
+          headers: { Authorization: `Bearer ${token}` },
+          body: formData,
+        });
         const uploadData = await uploadRes.json();
         if (!uploadData.success) {
           setError(uploadData.message || "Image upload failed.");
@@ -302,17 +300,14 @@ export function PropertyModal({ property, onClose, onSave }) {
       };
 
       // Step 3: Save property
-      const res = await fetch(
-        "http://localhost/server/controllers/properties.php",
-        {
-          method: isEdit ? "PUT" : "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-          body: JSON.stringify(payload),
+      const res = await fetch(API_ENDPOINTS.properties, {
+        method: isEdit ? "PUT" : "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
         },
-      );
+        body: JSON.stringify(payload),
+      });
 
       const data = await res.json();
       if (data.success) {
@@ -694,7 +689,7 @@ export function ViewPropertyModal({ property, onClose, onEdit }) {
             <div className="relative">
               <div className="aspect-video rounded-2xl overflow-hidden bg-primary-800 border border-primary-700/50">
                 <img
-                  src={`http://localhost/server/uploads/properties/${images[currentImageIndex]}`}
+                  src={`${API_ENDPOINTS.upload.replace("/upload.php", "")}/properties/${images[currentImageIndex]}`}
                   alt={property.title}
                   className="w-full h-full object-cover"
                 />
@@ -912,7 +907,7 @@ export function DeleteModal({ label, onConfirm, onClose }) {
   );
 }
 
-// Badge component import - make sure you have this in your ui.jsx file
+// Badge component
 function Badge({ status }) {
   const styles = {
     ready: "bg-green-500/10 text-green-400 border-green-500/30",
