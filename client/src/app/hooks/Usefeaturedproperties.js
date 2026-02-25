@@ -6,6 +6,7 @@ const API_BASE_URL = "https://api.graygoldrealty.com";
 
 /**
  * Transforms a raw DB property row into the shape the UI components expect.
+ * Now includes youtube_video field for property tours.
  */
 function normalizeProperty(raw) {
   return {
@@ -13,7 +14,6 @@ function normalizeProperty(raw) {
     title: raw.title ?? "",
     location: raw.location ?? "",
     city: raw.city ?? "",
-    // Always format from raw price → ₦340,000,000
     price: raw.price
       ? `₦${Number(raw.price).toLocaleString("en-US")}`
       : "Price on Request",
@@ -29,9 +29,12 @@ function normalizeProperty(raw) {
     status: raw.status ?? "available",
     featured: Boolean(raw.featured),
     description: raw.description ?? "",
-    // tags come back as a JSON array from the backend
-    badges: Array.isArray(raw.tags) ? raw.tags : [],
-    // images come back as an array of filenames → build full URLs
+    youtube_video: raw.youtube_video ?? null, // ✅ NEW: YouTube video ID
+    badges: Array.isArray(raw.tags)
+      ? raw.tags
+      : typeof raw.tags === "string"
+        ? JSON.parse(raw.tags)
+        : [],
     images:
       Array.isArray(raw.images) && raw.images.length > 0
         ? raw.images.map((filename) =>
@@ -39,7 +42,7 @@ function normalizeProperty(raw) {
               ? filename
               : `${API_BASE_URL}/uploads/properties/${filename}`,
           )
-        : ["/propertiesImages/property.jpeg"], // sensible fallback
+        : ["/propertiesImages/property.jpeg"],
   };
 }
 
@@ -47,7 +50,7 @@ function normalizeProperty(raw) {
  * useFeaturedProperties
  *
  * Fetches featured properties from the PHP REST API.
- * Supports optional refresh via the returned `refetch` function.
+ * Now includes youtube_video field for property tours.
  *
  * @param {object}  options
  * @param {number}  options.limit   - Max properties to fetch (default 10)

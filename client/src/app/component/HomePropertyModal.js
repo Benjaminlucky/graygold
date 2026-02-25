@@ -3,8 +3,30 @@
 import { useState, useEffect } from "react";
 
 export default function HomePropertyModal({ property, onClose }) {
-  const [currentImageIndex, setCurrentImageIndex] = useState(0);
+  const [currentMediaIndex, setCurrentMediaIndex] = useState(0);
   const [isImageFullscreen, setIsImageFullscreen] = useState(false);
+
+  // Create a combined media array: images + youtube video
+  const mediaItems = [
+    ...property.images.map((image) => ({
+      type: "image",
+      src: image,
+      alt: property.title,
+    })),
+    ...(property.youtube_video
+      ? [
+          {
+            type: "youtube",
+            videoId: property.youtube_video,
+            alt: `${property.title} - Video Tour`,
+          },
+        ]
+      : []),
+  ];
+
+  const totalMedia = mediaItems.length;
+  const isImageMedia = mediaItems[currentMediaIndex]?.type === "image";
+  const isVideoMedia = mediaItems[currentMediaIndex]?.type === "youtube";
 
   // Prevent body scroll when modal is open
   useEffect(() => {
@@ -29,17 +51,15 @@ export default function HomePropertyModal({ property, onClose }) {
     return () => window.removeEventListener("keydown", handleEscape);
   }, [isImageFullscreen, onClose]);
 
-  const nextImage = () => {
-    setCurrentImageIndex((prev) =>
-      prev === property.images.length - 1 ? 0 : prev + 1,
-    );
+  const nextMedia = () => {
+    setCurrentMediaIndex((prev) => (prev === totalMedia - 1 ? 0 : prev + 1));
   };
 
-  const prevImage = () => {
-    setCurrentImageIndex((prev) =>
-      prev === 0 ? property.images.length - 1 : prev - 1,
-    );
+  const prevMedia = () => {
+    setCurrentMediaIndex((prev) => (prev === 0 ? totalMedia - 1 : prev - 1));
   };
+
+  const currentMedia = mediaItems[currentMediaIndex];
 
   return (
     <>
@@ -95,24 +115,57 @@ export default function HomePropertyModal({ property, onClose }) {
           </button>
 
           <div className="flex flex-col lg:flex-row h-full max-h-[95vh]">
-            {/* Left Side - Image Gallery */}
+            {/* Left Side - Media Gallery (Images + Videos) */}
             <div className="lg:w-7/12 xl:w-8/12 relative bg-primary-900">
-              {/* Main Image */}
+              {/* Main Media Container */}
               <div className="relative h-[40vh] lg:h-full">
-                <img
-                  src={property.images[currentImageIndex]}
-                  alt={property.title}
-                  className="w-full h-full object-cover cursor-zoom-in"
-                  onClick={() => setIsImageFullscreen(true)}
-                />
+                {/* Images */}
+                {isImageMedia && (
+                  <img
+                    src={currentMedia.src}
+                    alt={currentMedia.alt}
+                    className="w-full h-full object-cover cursor-zoom-in"
+                    onClick={() => setIsImageFullscreen(true)}
+                  />
+                )}
 
-                {/* Image Navigation Arrows */}
-                {property.images.length > 1 && (
+                {/* YouTube Video */}
+                {isVideoMedia && (
+                  <div className="w-full h-full flex items-center justify-center bg-black">
+                    <iframe
+                      width="100%"
+                      height="100%"
+                      src={`https://www.youtube.com/embed/${currentMedia.videoId}?autoplay=0&modestbranding=1`}
+                      title={currentMedia.alt}
+                      frameBorder="0"
+                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                      allowFullScreen
+                      className="w-full h-full"
+                    />
+                  </div>
+                )}
+
+                {/* Video Badge */}
+                {isVideoMedia && (
+                  <div className="absolute top-4 left-4 z-40 flex items-center gap-2 px-3 py-1.5 rounded-lg bg-red-600 text-white text-xs font-black shadow-lg">
+                    <svg
+                      className="w-4 h-4"
+                      fill="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z" />
+                    </svg>
+                    PROPERTY TOUR
+                  </div>
+                )}
+
+                {/* Navigation Arrows */}
+                {totalMedia > 1 && (
                   <>
                     <button
-                      onClick={prevImage}
+                      onClick={prevMedia}
                       className="absolute left-4 top-1/2 -translate-y-1/2 z-40 w-14 h-14 rounded-full bg-white/90 backdrop-blur-sm flex items-center justify-center shadow-xl hover:bg-secondary-500 hover:text-white transition-all duration-300 group"
-                      aria-label="Previous image"
+                      aria-label="Previous media"
                     >
                       <svg
                         className="w-7 h-7 text-primary-900 group-hover:text-white transition-colors"
@@ -129,9 +182,9 @@ export default function HomePropertyModal({ property, onClose }) {
                       </svg>
                     </button>
                     <button
-                      onClick={nextImage}
+                      onClick={nextMedia}
                       className="absolute right-4 top-1/2 -translate-y-1/2 z-40 w-14 h-14 rounded-full bg-white/90 backdrop-blur-sm flex items-center justify-center shadow-xl hover:bg-secondary-500 hover:text-white transition-all duration-300 group"
-                      aria-label="Next image"
+                      aria-label="Next media"
                     >
                       <svg
                         className="w-7 h-7 text-primary-900 group-hover:text-white transition-colors"
@@ -150,51 +203,79 @@ export default function HomePropertyModal({ property, onClose }) {
                   </>
                 )}
 
-                {/* Expand/Fullscreen Button */}
-                <button
-                  onClick={() => setIsImageFullscreen(true)}
-                  className="absolute bottom-4 right-4 z-40 px-4 py-2 rounded-lg bg-white/90 backdrop-blur-sm flex items-center gap-2 shadow-lg hover:bg-secondary-500 hover:text-white transition-all duration-300 group"
-                  aria-label="View fullscreen"
-                >
-                  <svg
-                    className="w-5 h-5 text-primary-900 group-hover:text-white transition-colors"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
+                {/* Expand/Fullscreen Button (Images only) */}
+                {isImageMedia && (
+                  <button
+                    onClick={() => setIsImageFullscreen(true)}
+                    className="absolute bottom-4 right-4 z-40 px-4 py-2 rounded-lg bg-white/90 backdrop-blur-sm flex items-center gap-2 shadow-lg hover:bg-secondary-500 hover:text-white transition-all duration-300 group"
+                    aria-label="View fullscreen"
                   >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4"
-                    />
-                  </svg>
-                  <span className="text-sm font-semibold">Expand</span>
-                </button>
+                    <svg
+                      className="w-5 h-5 text-primary-900 group-hover:text-white transition-colors"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4"
+                      />
+                    </svg>
+                    <span className="text-sm font-semibold">Expand</span>
+                  </button>
+                )}
               </div>
 
-              {/* Thumbnail Strip */}
-              {property.images.length > 1 && (
+              {/* Thumbnail/Media Strip */}
+              {totalMedia > 1 && (
                 <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-primary-900/95 to-transparent p-4">
                   <div className="flex gap-2 overflow-x-auto scrollbar-hide">
-                    {property.images.map((image, idx) => (
+                    {mediaItems.map((media, idx) => (
                       <button
                         key={idx}
-                        onClick={() => setCurrentImageIndex(idx)}
-                        className={`flex-shrink-0 w-20 h-20 rounded-lg overflow-hidden transition-all duration-300 ${
-                          idx === currentImageIndex
+                        onClick={() => setCurrentMediaIndex(idx)}
+                        className={`flex-shrink-0 w-20 h-20 rounded-lg overflow-hidden transition-all duration-300 relative ${
+                          idx === currentMediaIndex
                             ? "ring-4 ring-secondary-500 scale-110"
                             : "ring-2 ring-white/30 hover:ring-white/60 opacity-70 hover:opacity-100"
                         }`}
                       >
-                        <img
-                          src={image}
-                          alt={`Thumbnail ${idx + 1}`}
-                          className="w-full h-full object-cover"
-                        />
+                        {media.type === "image" ? (
+                          <img
+                            src={media.src}
+                            alt={`Thumbnail ${idx + 1}`}
+                            className="w-full h-full object-cover"
+                          />
+                        ) : (
+                          <>
+                            <div className="w-full h-full bg-black flex items-center justify-center">
+                              <svg
+                                className="w-8 h-8 text-red-500"
+                                fill="currentColor"
+                                viewBox="0 0 24 24"
+                              >
+                                <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z" />
+                              </svg>
+                            </div>
+                            <div className="absolute inset-0 bg-gradient-to-tr from-black/80 to-transparent flex items-end justify-end p-1">
+                              <span className="text-white text-xs font-bold">
+                                TOUR
+                              </span>
+                            </div>
+                          </>
+                        )}
                       </button>
                     ))}
                   </div>
+                </div>
+              )}
+
+              {/* Media Counter */}
+              {totalMedia > 1 && (
+                <div className="absolute top-4 left-4 z-40 px-3 py-1.5 rounded-lg bg-white/90 backdrop-blur-sm text-primary-900 text-xs font-bold shadow-lg">
+                  {currentMediaIndex + 1} / {totalMedia}
                 </div>
               )}
             </div>
@@ -382,7 +463,7 @@ export default function HomePropertyModal({ property, onClose }) {
       </div>
 
       {/* Fullscreen Image Viewer */}
-      {isImageFullscreen && (
+      {isImageFullscreen && isImageMedia && (
         <div
           className="fixed inset-0 bg-black z-[200] flex items-center justify-center animate-fadeIn"
           onClick={() => setIsImageFullscreen(false)}
@@ -408,8 +489,8 @@ export default function HomePropertyModal({ property, onClose }) {
           </button>
 
           <img
-            src={property.images[currentImageIndex]}
-            alt={property.title}
+            src={currentMedia.src}
+            alt={currentMedia.alt}
             className="max-w-[95vw] max-h-[95vh] object-contain"
             onClick={(e) => e.stopPropagation()}
           />
@@ -420,7 +501,7 @@ export default function HomePropertyModal({ property, onClose }) {
               <button
                 onClick={(e) => {
                   e.stopPropagation();
-                  prevImage();
+                  prevMedia();
                 }}
                 className="absolute left-4 top-1/2 -translate-y-1/2 w-16 h-16 rounded-full bg-white/10 backdrop-blur-sm flex items-center justify-center hover:bg-white/20 transition-all duration-300"
                 aria-label="Previous image"
@@ -442,7 +523,7 @@ export default function HomePropertyModal({ property, onClose }) {
               <button
                 onClick={(e) => {
                   e.stopPropagation();
-                  nextImage();
+                  nextMedia();
                 }}
                 className="absolute right-4 top-1/2 -translate-y-1/2 w-16 h-16 rounded-full bg-white/10 backdrop-blur-sm flex items-center justify-center hover:bg-white/20 transition-all duration-300"
                 aria-label="Next image"
@@ -466,7 +547,7 @@ export default function HomePropertyModal({ property, onClose }) {
 
           {/* Image counter */}
           <div className="absolute bottom-4 left-1/2 -translate-x-1/2 px-4 py-2 rounded-full bg-white/10 backdrop-blur-sm text-white text-sm font-medium">
-            {currentImageIndex + 1} / {property.images.length}
+            {currentMediaIndex + 1} / {totalMedia}
           </div>
         </div>
       )}
