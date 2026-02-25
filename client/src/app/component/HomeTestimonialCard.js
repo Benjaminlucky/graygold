@@ -2,6 +2,43 @@
 
 import { useState, useRef, useEffect } from "react";
 
+// Pre-defined waveform patterns to prevent hydration mismatches
+// Each pattern is a set of heights for a 20-bar waveform
+const WAVEFORM_PATTERNS = {
+  1: [
+    45, 52, 38, 62, 48, 55, 41, 58, 50, 46, 59, 38, 65, 42, 55, 48, 61, 40, 54,
+    50,
+  ],
+  2: [
+    52, 45, 61, 38, 55, 48, 62, 41, 58, 50, 46, 59, 38, 65, 42, 55, 48, 61, 40,
+    54,
+  ],
+  3: [
+    38, 62, 48, 55, 41, 58, 50, 46, 59, 38, 65, 42, 55, 48, 61, 40, 54, 50, 45,
+    52,
+  ],
+  4: [
+    61, 38, 55, 48, 62, 41, 58, 50, 46, 59, 38, 65, 42, 55, 48, 61, 40, 54, 50,
+    45,
+  ],
+  5: [
+    48, 55, 41, 58, 50, 46, 59, 38, 65, 42, 55, 48, 61, 40, 54, 50, 45, 52, 38,
+    62,
+  ],
+  6: [
+    55, 48, 62, 41, 58, 50, 46, 59, 38, 65, 42, 55, 48, 61, 40, 54, 50, 45, 52,
+    38,
+  ],
+  7: [
+    41, 58, 50, 46, 59, 38, 65, 42, 55, 48, 61, 40, 54, 50, 45, 52, 38, 62, 48,
+    55,
+  ],
+  8: [
+    62, 41, 58, 50, 46, 59, 38, 65, 42, 55, 48, 61, 40, 54, 50, 45, 52, 38, 62,
+    48,
+  ],
+};
+
 export default function HomeTestimonialCard({
   testimonial,
   index,
@@ -15,6 +52,10 @@ export default function HomeTestimonialCard({
   // Determine card variant based on content
   const hasPrice = testimonial.price;
   const isShort = testimonial.text.length < 100;
+
+  // Get consistent waveform heights based on testimonial ID (1-8 cycle)
+  const waveformHeights =
+    WAVEFORM_PATTERNS[(testimonial.id % 8) + 1] || WAVEFORM_PATTERNS[1];
 
   useEffect(() => {
     if (audioRef.current) {
@@ -131,7 +172,7 @@ export default function HomeTestimonialCard({
               {/* Waveform Visualization */}
               <div className="flex-1">
                 <div className="flex items-center gap-0.5 h-8">
-                  {[...Array(20)].map((_, i) => (
+                  {waveformHeights.map((height, i) => (
                     <div
                       key={i}
                       className={`flex-1 rounded-full transition-all duration-300 ${
@@ -140,7 +181,7 @@ export default function HomeTestimonialCard({
                           : "bg-primary-300"
                       }`}
                       style={{
-                        height: `${Math.random() * 60 + 20}%`,
+                        height: `${height}%`,
                         animationDelay: `${i * 0.05}s`,
                       }}
                     />

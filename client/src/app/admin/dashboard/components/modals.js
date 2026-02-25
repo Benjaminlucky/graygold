@@ -224,6 +224,7 @@ export function PropertyModal({ property, onClose, onSave }) {
     featured: property?.featured || false,
     tags: parseTags(property?.tags),
     description: property?.description || "",
+    youtube_video: property?.youtube_video || "",
   });
 
   const [images, setImages] = useState([]);
@@ -249,6 +250,7 @@ export function PropertyModal({ property, onClose, onSave }) {
         featured: !!property.featured,
         tags: parseTags(property.tags),
         description: property.description || "",
+        youtube_video: property.youtube_video || "",
       });
     }
   }, [property]);
@@ -520,6 +522,41 @@ export function PropertyModal({ property, onClose, onSave }) {
             />
           </div>
 
+          {/* YouTube Video */}
+          <div className="space-y-2">
+            <label className={labelClass}>
+              YouTube Video
+              <span className="ml-2 text-primary-600 normal-case font-normal tracking-normal">
+                (optional — paste video URL or ID)
+              </span>
+            </label>
+            <input
+              name="youtube_video"
+              value={form.youtube_video}
+              onChange={handleChange}
+              placeholder="https://youtube.com/watch?v=dQw4w9WgXcQ or dQw4w9WgXcQ"
+              className={inputClass}
+            />
+            {form.youtube_video && (
+              <p className="text-primary-500 text-xs flex items-center gap-1.5">
+                <svg
+                  className="w-3.5 h-3.5 text-green-400"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                  strokeWidth={2.5}
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="M5 13l4 4L19 7"
+                  />
+                </svg>
+                Video will be embedded in property details
+              </p>
+            )}
+          </div>
+
           {/* Images */}
           <div className="space-y-2">
             <label className={labelClass}>
@@ -684,6 +721,32 @@ export function ViewPropertyModal({ property, onClose, onEdit }) {
 
         {/* Content */}
         <div className="p-6 space-y-6">
+          {/* YouTube Video */}
+          {property.youtube_video && (
+            <div className="relative">
+              <div className="aspect-video rounded-2xl overflow-hidden bg-black border border-primary-700/50">
+                <iframe
+                  src={`https://www.youtube.com/embed/${property.youtube_video}`}
+                  title="Property Video"
+                  frameBorder="0"
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                  allowFullScreen
+                  className="w-full h-full"
+                />
+              </div>
+              <div className="absolute top-3 left-3 bg-red-600 text-white text-xs font-black px-2.5 py-1 rounded-lg flex items-center gap-1.5 shadow-lg">
+                <svg
+                  className="w-3.5 h-3.5"
+                  fill="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z" />
+                </svg>
+                VIDEO TOUR
+              </div>
+            </div>
+          )}
+
           {/* Image Gallery */}
           {images.length > 0 && (
             <div className="relative">

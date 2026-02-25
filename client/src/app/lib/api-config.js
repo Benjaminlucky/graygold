@@ -1,10 +1,36 @@
 // lib/api-config.js
 
-// Use production API since local backend isn't available
-// For production, this stays the same
-// For local development, we connect to the production API
-export const API_URL =
-  process.env.NEXT_PUBLIC_API_URL || "https://api.graygoldrealty.com";
+// Dynamically determine the API URL based on environment
+const getApiUrl = () => {
+  // Priority 1: Explicit environment variable
+  if (process.env.NEXT_PUBLIC_API_URL) {
+    return process.env.NEXT_PUBLIC_API_URL;
+  }
+
+  // Priority 2: Check if we're in development mode
+  if (process.env.NODE_ENV === "development") {
+    // Check if running on localhost
+    if (typeof window !== "undefined") {
+      const hostname = window.location.hostname;
+      if (
+        hostname === "localhost" ||
+        hostname === "127.0.0.1" ||
+        hostname === "::1"
+      ) {
+        // Use local API if available, otherwise fallback to production
+        return (
+          process.env.NEXT_PUBLIC_LOCAL_API_URL ||
+          "http://localhost/graygold/api"
+        );
+      }
+    }
+  }
+
+  // Default: Production API
+  return "https://api.graygoldrealty.com";
+};
+
+export const API_URL = getApiUrl();
 
 export const API_ENDPOINTS = {
   properties: `${API_URL}/controllers/properties.php`,
@@ -18,6 +44,9 @@ export const API_ENDPOINTS = {
 
 export const UPLOADS_URL = `${API_URL}/uploads/properties`;
 
+// Log environment information
+const environment = process.env.NODE_ENV || "production";
+console.log(`[API Config] Environment: ${environment}`);
 console.log("[API Config] Using API_URL:", API_URL);
 console.log("[API Config] Endpoints:", API_ENDPOINTS);
 
