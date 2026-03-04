@@ -3,3 +3,7 @@
   to = "https://api.graygoldrealty.com/:splat"
   status = 200
   force = true
+
+# Add these 2 lines:
+[functions]
+  included_files = []
