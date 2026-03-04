@@ -248,7 +248,7 @@ function PropertyCard({ listing, index }) {
             {listing.type}
           </span>
           <Link
-            href={`/listings/${listing.id}`}
+            href={`/listing/${listing.id}`}
             className="text-xs font-bold text-secondary-500 hover:text-secondary-700 flex items-center gap-1 group/link transition-colors duration-200"
           >
             View Details
