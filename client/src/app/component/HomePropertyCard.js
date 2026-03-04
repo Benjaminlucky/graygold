@@ -27,7 +27,7 @@ export default function HomePropertyCard({ property, index, onViewDetails }) {
   };
 
   return (
-    <Link href={`/listings/${property.id}`}>
+    <Link href={`/listing/${property.id}`}>
       <div
         className="flex-shrink-0 w-[350px] lg:w-[400px] snap-start group cursor-pointer animate-in fade-in-up slide-in-from-bottom-6 duration-600"
         style={{
