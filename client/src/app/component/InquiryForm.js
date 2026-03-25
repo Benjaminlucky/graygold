@@ -25,11 +25,7 @@ export default function InquiryForm() {
   const [error, setError] = useState("");
 
   const handleChange = (name, value) => {
-    setFormData((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
-    // Clear error when user starts typing
+    setFormData((prev) => ({ ...prev, [name]: value }));
     if (error) setError("");
   };
 
@@ -40,7 +36,8 @@ export default function InquiryForm() {
     setSuccess(false);
 
     try {
-      const response = await fetch(API_ENDPOINTS.sendInquiryEmail, {
+      // Submit to inquiries.php — saves to DB AND sends email notification
+      const response = await fetch(API_ENDPOINTS.inquiries, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -52,7 +49,6 @@ export default function InquiryForm() {
 
       if (data.success) {
         setSuccess(true);
-        // Reset form
         setFormData({
           inquiryType: "",
           buyerInfo: "",
@@ -66,8 +62,6 @@ export default function InquiryForm() {
           location: "",
           message: "",
         });
-
-        // Hide success message after 5 seconds
         setTimeout(() => setSuccess(false), 5000);
       } else {
         setError(data.message || "Failed to submit inquiry. Please try again.");
@@ -97,7 +91,7 @@ export default function InquiryForm() {
         <div className="mb-6 rounded-lg border-2 border-green-500 bg-green-50 p-4">
           <div className="flex items-center gap-3">
             <svg
-              className="h-6 w-6 text-green-600 flex-shrink-0"
+              className="h-6 w-6 flex-shrink-0 text-green-600"
               fill="none"
               viewBox="0 0 24 24"
               stroke="currentColor"
@@ -125,7 +119,7 @@ export default function InquiryForm() {
         <div className="mb-6 rounded-lg border-2 border-red-500 bg-red-50 p-4">
           <div className="flex items-center gap-3">
             <svg
-              className="h-6 w-6 text-red-600 flex-shrink-0"
+              className="h-6 w-6 flex-shrink-0 text-red-600"
               fill="none"
               viewBox="0 0 24 24"
               stroke="currentColor"
