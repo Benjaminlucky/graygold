@@ -9,5 +9,7 @@ export function getWatermarkedUrl(originalUrl) {
   if (!originalUrl.startsWith("http://") && !originalUrl.startsWith("https://")) {
     return originalUrl;
   }
-  return `/api/watermark?src=${encodeURIComponent(originalUrl)}`;
+  // Deliberately NOT under /api/* — netlify.toml force-redirects that whole
+  // path to the external PHP backend, which would swallow this route.
+  return `/watermark?src=${encodeURIComponent(originalUrl)}`;
 }
