@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
+import { getWatermarkedUrl } from "../lib/watermark";
 
 const API_BASE_URL = "https://api.graygoldrealty.com";
 
@@ -27,17 +28,19 @@ function normalizeListing(raw) {
     // Use first image as the card thumbnail; fall back to placeholder
     image:
       Array.isArray(raw.images) && raw.images.length > 0
-        ? raw.images[0].startsWith("http")
-          ? raw.images[0]
-          : `${API_BASE_URL}/uploads/properties/${raw.images[0]}`
+        ? getWatermarkedUrl(
+            raw.images[0].startsWith("http")
+              ? raw.images[0]
+              : `${API_BASE_URL}/uploads/properties/${raw.images[0]}`,
+          )
         : "/propertiesImages/property.jpeg",
     // Keep all images for detail views
     images:
       Array.isArray(raw.images) && raw.images.length > 0
         ? raw.images.map((f) =>
-            f.startsWith("http")
-              ? f
-              : `${API_BASE_URL}/uploads/properties/${f}`,
+            getWatermarkedUrl(
+              f.startsWith("http") ? f : `${API_BASE_URL}/uploads/properties/${f}`,
+            ),
           )
         : ["/propertiesImages/property.jpeg"],
   };

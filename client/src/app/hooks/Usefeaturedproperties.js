@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
+import { getWatermarkedUrl } from "../lib/watermark";
 
 const API_BASE_URL = "https://api.graygoldrealty.com";
 
@@ -38,9 +39,11 @@ function normalizeProperty(raw) {
     images:
       Array.isArray(raw.images) && raw.images.length > 0
         ? raw.images.map((filename) =>
-            filename.startsWith("http")
-              ? filename
-              : `${API_BASE_URL}/uploads/properties/${filename}`,
+            getWatermarkedUrl(
+              filename.startsWith("http")
+                ? filename
+                : `${API_BASE_URL}/uploads/properties/${filename}`,
+            ),
           )
         : ["/propertiesImages/property.jpeg"],
   };
