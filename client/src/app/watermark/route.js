@@ -1,4 +1,3 @@
-import sharp from "sharp";
 import { NextResponse } from "next/server";
 
 export const runtime = "nodejs";
@@ -71,6 +70,11 @@ export async function GET(request) {
     }
 
     const inputBuffer = Buffer.from(await upstream.arrayBuffer());
+
+    // Imported dynamically (rather than at module scope) so that a
+    // platform/native-binding failure is caught below and falls back to the
+    // original image, instead of crashing the whole route at import time.
+    const { default: sharp } = await import("sharp");
     const image = sharp(inputBuffer);
     const metadata = await image.metadata();
     const width = metadata.width || 1200;
