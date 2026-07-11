@@ -12,11 +12,21 @@ export const metadata = {
     description:
       "Get in touch with our team — call, email, or visit our Lagos office to speak with a dedicated real estate advisor.",
     url: "/contact",
+    images: [
+      {
+        url: "/grayGoldLogo.png",
+        width: 800,
+        height: 800,
+        alt: "Gray Gold Investment Limited",
+      },
+    ],
   },
   twitter: {
+    card: "summary_large_image",
     title: "Contact Gray Gold Investment Limited",
     description:
       "Get in touch with our team — call, email, or visit our Lagos office to speak with a dedicated real estate advisor.",
+    images: ["/grayGoldLogo.png"],
   },
 };
 
